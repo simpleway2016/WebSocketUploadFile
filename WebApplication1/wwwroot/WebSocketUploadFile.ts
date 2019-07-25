@@ -1,4 +1,4 @@
-﻿class WebSocketUploadFile {
+﻿export class WebSocketUploadFile {
     element: HTMLInputElement;
     serverUrl: string;
     
@@ -15,7 +15,7 @@
     private readedPosition = 0;
     private tranId = "";
     /**
-     *  
+     * 
      * @param fileEle
      * @param tranId
      * @param serverUrl 服务器地址，如：http://www.test.com，如果为空，则以location.href为准

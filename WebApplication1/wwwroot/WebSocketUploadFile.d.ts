@@ -1,4 +1,4 @@
-declare class WebSocketUploadFile {
+export declare class WebSocketUploadFile {
     element: HTMLInputElement;
     serverUrl: string;
     isUploading: boolean;
@@ -11,6 +11,12 @@ declare class WebSocketUploadFile {
     private reader;
     private readedPosition;
     private tranId;
+    /**
+     *
+     * @param fileEle
+     * @param tranId
+     * @param serverUrl 服务器地址，如：http://www.test.com，如果为空，则以location.href为准
+     */
     constructor(fileEle: HTMLInputElement, serverUrl?: string);
     private onSocketError;
     private initWebSocket;

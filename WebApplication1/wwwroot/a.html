@@ -3,7 +3,10 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
-    <script src="WebSocketUploadFileScripts.js" type="text/javascript"></script>
+    <script>
+        var exports = {};
+    </script>
+    <script src="WebSocketUploadFile.js" type="text/javascript"></script>
 </head>
 <body>
     <input id="file" type="file" />
@@ -14,15 +17,15 @@
 </body>
 <script lang="ja">
     var info = document.body.querySelector("#info");
-        var obj = new WebSocketUploadFile(document.body.querySelector("#file"));
+    var obj = new exports.WebSocketUploadFile(document.body.querySelector("#file"));
     obj.onProgress = function (sender, total, sended) {
         info.innerHTML = sended + "," + total;
-        }
+    }
     obj.onCompleted = function (sender) {
         info.innerHTML = "ok";
-        }
-    obj.onError = function (sender,err) {
+    }
+    obj.onError = function (sender, err) {
         info.innerHTML = err.message;
-        }
+    }
 </script>
 </html>

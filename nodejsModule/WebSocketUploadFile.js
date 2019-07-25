@@ -1,4 +1,12 @@
-var WebSocketUploadFile = (function () {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var WebSocketUploadFile = /** @class */ (function () {
+    /**
+     *
+     * @param fileEle
+     * @param tranId
+     * @param serverUrl 服务器地址，如：http://www.test.com，如果为空，则以location.href为准
+     */
     function WebSocketUploadFile(fileEle, serverUrl) {
         if (serverUrl === void 0) { serverUrl = undefined; }
         this.isUploading = false;
@@ -132,4 +140,5 @@ var WebSocketUploadFile = (function () {
     };
     return WebSocketUploadFile;
 }());
-//# sourceMappingURL=WebSocketUploadFileScripts.js.map
+exports.WebSocketUploadFile = WebSocketUploadFile;
+//# sourceMappingURL=WebSocketUploadFile.js.map
