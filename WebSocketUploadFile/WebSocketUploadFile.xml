@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>WebSocketUploadFile</name>
+    </assembly>
+    <members>
+        <member name="M:WebSocketUploadFile.Factory.Enable(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IHostingEnvironment)">
+            <summary>
+            启用WebSocketUploadFile
+            </summary>
+            <param name="app"></param>
+            <param name="env"></param>
+        </member>
+        <member name="T:WebSocketUploadFile.IUploadFileHandler">
+            <summary>
+            处理上传的文件
+            </summary>
+        </member>
+        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnBeginUploadFile(System.Int32,System.String,System.Int32,System.Boolean)">
+            <summary>
+            开始文件的传输
+            </summary>
+            <param name="tranid">事务id，断点续传的文件，事务id应该相同</param>
+            <param name="filename"></param>
+            <param name="length">文件的大小</param>
+            <param name="isContinue">是否断点续传</param>
+        </member>
+        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnReceivedFileContent(System.Int32,System.String,System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            接收到文件内容
+            </summary>
+            <param name="tranid">事务id，断点续传的文件，事务id应该相同</param>
+            <param name="filename"></param>
+            <param name="data"></param>
+            <param name="length">文件总长度</param>
+            <param name="filePosition">接收到的数据所在的position</param>
+        </member>
+        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnUploadCompleted(System.Int32,System.String)">
+            <summary>
+            文件上传完毕
+            </summary>
+            <param name="tranid">事务id，断点续传的文件，事务id应该相同</param>
+            <param name="filename"></param>
+        </member>
+        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnError(System.Int32,System.String)">
+            <summary>
+            传输错误
+            </summary>
+            <param name="tranid"></param>
+            <param name="filename"></param>
+        </member>
+    </members>
+</doc>
