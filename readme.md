@@ -73,3 +73,32 @@ namespace WebApplication1
 }
 
 ```
+
+**Html页面的使用**
+
+```
+<body>
+    <input id="file" type="file" />
+    <button onclick="obj.upload()">
+        upload
+    </button>
+    <div id="info"></div>
+</body>
+<script lang="ja">
+    var info = document.body.querySelector("#info");
+
+    //引用nodejs模块
+    var WebSocketUploadFile = require("jack-websocket-uploadfile");
+
+    var obj = new WebSocketUploadFile(document.body.querySelector("#file"));
+    obj.onProgress = function (sender, total, sended) {
+        info.innerHTML = sended + "," + total;
+    }
+    obj.onCompleted = function (sender) {
+        info.innerHTML = "ok";
+    }
+    obj.onError = function (sender, err) {
+        info.innerHTML = err.message;
+    }
+</script>
+```
