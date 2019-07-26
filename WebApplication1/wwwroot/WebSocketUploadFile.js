@@ -1,5 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * 如果要实现断点续传，并且WebSocketUploadFile是一个新的实例化对象，可以通过设置tranId和serverReceived属性来实现
+ * 如果是同一个WebSocketUploadFile对象，在传输过程中发生错误中端，只需要再次调用该对象的upload方法即可
+ * */
 var WebSocketUploadFile = /** @class */ (function () {
     /**
      *
@@ -9,10 +13,12 @@ var WebSocketUploadFile = /** @class */ (function () {
      */
     function WebSocketUploadFile(fileEle, serverUrl) {
         if (serverUrl === void 0) { serverUrl = undefined; }
-        this.isUploading = false;
-        this.position = 0;
-        this.readedPosition = 0;
+        /**事务id，相同的事务id，可以实现断点续传*/
         this.tranId = "";
+        /**服务器已经接收的数量*/
+        this.serverReceived = 0;
+        this.isUploading = false;
+        this.readedPosition = 0;
         this.element = fileEle;
         if (!serverUrl) {
             if (location.port)
@@ -65,24 +71,24 @@ var WebSocketUploadFile = /** @class */ (function () {
             _this.webSocket.send(JSON.stringify({
                 filename: _this.file.name,
                 length: _this.file.size,
-                position: _this.position,
+                position: _this.serverReceived,
                 tranid: _this.tranId
             }));
         };
         var callBack = function (ev) {
-            _this.position = parseInt(ev.data);
-            if (_this.position == -1) {
+            _this.serverReceived = parseInt(ev.data);
+            if (_this.serverReceived == -1) {
                 var web = _this.webSocket;
                 _this.webSocket = null;
                 web.close();
                 _this.isUploading = false;
             }
-            if (_this.onProgress && _this.position >= 0) {
-                _this.onProgress(_this, _this.file.size, _this.position);
+            if (_this.onProgress && _this.serverReceived >= 0) {
+                _this.onProgress(_this, _this.file.size, _this.serverReceived);
             }
-            if (_this.position == -1) {
+            if (_this.serverReceived == -1) {
                 _this.readedPosition = 0;
-                _this.position = 0;
+                _this.serverReceived = 0;
                 _this.tranId = "";
                 if (_this.onCompleted != null) {
                     _this.onCompleted(_this);
@@ -136,6 +142,7 @@ var WebSocketUploadFile = /** @class */ (function () {
             throw new Error("is uploading");
         this.isUploading = true;
         this.file = this.element.files[0];
+        this.readedPosition = this.serverReceived;
         this.initWebSocket();
     };
     return WebSocketUploadFile;

@@ -1,7 +1,14 @@
-﻿export class WebSocketUploadFile {
+﻿/**
+ * 如果要实现断点续传，并且WebSocketUploadFile是一个新的实例化对象，可以通过设置tranId和serverReceived属性来实现
+ * 如果是同一个WebSocketUploadFile对象，在传输过程中发生错误中端，只需要再次调用该对象的upload方法即可
+ * */
+export class WebSocketUploadFile {
     element: HTMLInputElement;
     serverUrl: string;
-    
+    /**事务id，相同的事务id，可以实现断点续传*/
+    tranId = "";
+    /**服务器已经接收的数量*/
+    serverReceived = 0;
     isUploading = false;
 
     onProgress: (sender: WebSocketUploadFile, totalBytes, sended) => void;
@@ -10,10 +17,10 @@
 
     private webSocket: WebSocket;
     private file: File;
-    private position = 0;
+    
     private reader: FileReader;
     private readedPosition = 0;
-    private tranId = "";
+
     /**
      * 
      * @param fileEle
@@ -77,26 +84,26 @@
             this.webSocket.send(JSON.stringify({
                 filename : this.file.name,
                 length: this.file.size,
-                position: this.position,
+                position: this.serverReceived,
                 tranid: this.tranId
             }));
         };
         var callBack = (ev: MessageEvent) => {
-            this.position = parseInt(ev.data);
+            this.serverReceived = parseInt(ev.data);
 
-            if (this.position == -1) {
+            if (this.serverReceived == -1) {
                 var web = this.webSocket;
                 this.webSocket = null;
                 web.close();
                 this.isUploading = false;
             }
 
-            if (this.onProgress && this.position >= 0) {
-                this.onProgress(this, this.file.size, this.position);
+            if (this.onProgress && this.serverReceived >= 0) {
+                this.onProgress(this, this.file.size, this.serverReceived);
             }
-            if (this.position == -1) {
+            if (this.serverReceived == -1) {
                 this.readedPosition = 0;
-                this.position = 0;
+                this.serverReceived = 0;
                 this.tranId = "";
                 if (this.onCompleted != null) {
                     this.onCompleted(this);
@@ -159,6 +166,7 @@
 
         this.isUploading = true;
         this.file = this.element.files[0];
+        this.readedPosition = this.serverReceived;
         this.initWebSocket();
     }
 }
