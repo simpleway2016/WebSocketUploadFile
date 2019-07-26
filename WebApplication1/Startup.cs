@@ -40,31 +40,31 @@ namespace WebApplication1
     {
         Dictionary<int, System.IO.FileStream> _dict = new Dictionary<int, System.IO.FileStream>();
 
-        public void OnBeginUploadFile(int tranid, string filename, int length, bool isContinue)
+        public void OnBeginUploadFile(WebSocketUploadFile.UploadHeader header, bool isContinue)
         {
-           if(_dict.ContainsKey(tranid) == false)
+           if(_dict.ContainsKey(header.tranid.Value) == false)
             {
-                _dict[tranid] = System.IO.File.Create($"{AppDomain.CurrentDomain.BaseDirectory}{filename}");
+                _dict[header.tranid.Value] = System.IO.File.Create($"{AppDomain.CurrentDomain.BaseDirectory}{header.filename}");
             }
         }
 
-        public void OnError(int tranid, string filename)
+        public void OnError(WebSocketUploadFile.UploadHeader header)
         {
 
         }
 
-        public void OnReceivedFileContent(int tranid, string filename, byte[] data, int length, int filePosition)
+        public void OnReceivedFileContent(WebSocketUploadFile.UploadHeader header, byte[] data, int length, int filePosition)
         {
-            var stream = _dict[tranid];
+            var stream = _dict[header.tranid.Value];
             stream.Seek(filePosition, System.IO.SeekOrigin.Begin);
             stream.Write(data, 0, length);
         }
 
-        public void OnUploadCompleted(int tranid, string filename)
+        public void OnUploadCompleted(WebSocketUploadFile.UploadHeader header)
         {
-            var stream = _dict[tranid];
+            var stream = _dict[header.tranid.Value];
             stream.Close();
-            _dict.Remove(tranid);
+            _dict.Remove(header.tranid.Value);
         }
     }
 }

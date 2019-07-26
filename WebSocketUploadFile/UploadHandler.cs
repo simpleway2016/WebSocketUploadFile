@@ -29,8 +29,9 @@ namespace WebSocketUploadFile
         {
             if(_handler != null)
             {
-                _handler.OnBeginUploadFile(_header.tranid.GetValueOrDefault(), _header.filename, _header.length,_header.position == 0 ? false : true);
+                _handler.OnBeginUploadFile(_header , _header.position == 0 ? false : true);
             }
+            var lastReportTime = DateTime.Now.AddSeconds(-100);
             var bs = new byte[204800];
             bool finished = false;
             while (true)
@@ -57,8 +58,12 @@ namespace WebSocketUploadFile
                             }
                             else
                             {
-                                var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(_header.position.ToString()));
-                                _socket.SendAsync(outputTranIdBuffer, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
+                                if ((DateTime.Now - lastReportTime).TotalSeconds >= 1)
+                                {
+                                    lastReportTime = DateTime.Now;
+                                    var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(_header.position.ToString()));
+                                    _socket.SendAsync(outputTranIdBuffer, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
+                                }
                             }
                                                       
                         }
@@ -78,7 +83,7 @@ namespace WebSocketUploadFile
             {
                 if (_handler != null)
                 {
-                    _handler.OnError(_header.tranid.GetValueOrDefault(), _header.filename);
+                    _handler.OnError(_header );
                 }
             }
         }
@@ -87,7 +92,7 @@ namespace WebSocketUploadFile
         {
             if(_handler != null)
             {
-                _handler.OnReceivedFileContent(tranid, filename, data, length, filePosition);
+                _handler.OnReceivedFileContent(_header, data, length, filePosition);
             }
         }
 
@@ -95,7 +100,7 @@ namespace WebSocketUploadFile
         {
             if (_handler != null)
             {
-                _handler.OnUploadCompleted(tranid, filename);
+                _handler.OnUploadCompleted(_header);
             }
         }
     }

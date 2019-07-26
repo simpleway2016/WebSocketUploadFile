@@ -4,10 +4,13 @@ using System.Text;
 
 namespace WebSocketUploadFile
 {
-    class UploadHeader
+    public class UploadHeader
     {
 
         private int? _tranid;
+        /// <summary>
+        /// 事务id，断点续传的文件，事务id应该相同
+        /// </summary>
         public int? tranid
         {
             get => _tranid;
@@ -16,6 +19,20 @@ namespace WebSocketUploadFile
                 if (_tranid != value)
                 {
                     _tranid = value;
+                }
+            }
+        }
+
+
+        private string _state;
+        public string state
+        {
+            get => _state;
+            set
+            {
+                if (_state != value)
+                {
+                    _state = value;
                 }
             }
         }
@@ -35,6 +52,9 @@ namespace WebSocketUploadFile
 
 
         private int _length;
+        /// <summary>
+        /// 文件的大小
+        /// </summary>
         public int length
         {
             get => _length;

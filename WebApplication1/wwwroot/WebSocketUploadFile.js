@@ -72,7 +72,8 @@ var WebSocketUploadFile = /** @class */ (function () {
                 filename: _this.file.name,
                 length: _this.file.size,
                 position: _this.serverReceived,
-                tranid: _this.tranId
+                tranid: _this.tranId,
+                state: _this.state
             }));
         };
         var callBack = function (ev) {

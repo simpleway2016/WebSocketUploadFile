@@ -10,6 +10,8 @@ export declare class WebSocketUploadFile {
     /**服务器已经接收的数量*/
     serverReceived: number;
     isUploading: boolean;
+    /**上传到服务器的附加信息*/
+    state: string;
     onProgress: (sender: WebSocketUploadFile, totalBytes: any, serverReceived: any) => void;
     onCompleted: (sender: WebSocketUploadFile) => void;
     onError: (sender: WebSocketUploadFile, err: any) => void;

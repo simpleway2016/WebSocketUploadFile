@@ -16,38 +16,43 @@
             处理上传的文件
             </summary>
         </member>
-        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnBeginUploadFile(System.Int32,System.String,System.Int32,System.Boolean)">
+        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnBeginUploadFile(WebSocketUploadFile.UploadHeader,System.Boolean)">
             <summary>
             开始文件的传输
             </summary>
-            <param name="tranid">事务id，断点续传的文件，事务id应该相同</param>
-            <param name="filename"></param>
-            <param name="length">文件的大小</param>
+            <param name="header"></param>
             <param name="isContinue">是否断点续传</param>
         </member>
-        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnReceivedFileContent(System.Int32,System.String,System.Byte[],System.Int32,System.Int32)">
+        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnReceivedFileContent(WebSocketUploadFile.UploadHeader,System.Byte[],System.Int32,System.Int32)">
             <summary>
             接收到文件内容
             </summary>
-            <param name="tranid">事务id，断点续传的文件，事务id应该相同</param>
-            <param name="filename"></param>
+            <param name="header"></param>
             <param name="data"></param>
             <param name="length">文件总长度</param>
             <param name="filePosition">接收到的数据所在的position</param>
         </member>
-        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnUploadCompleted(System.Int32,System.String)">
+        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnUploadCompleted(WebSocketUploadFile.UploadHeader)">
             <summary>
             文件上传完毕
             </summary>
-            <param name="tranid">事务id，断点续传的文件，事务id应该相同</param>
-            <param name="filename"></param>
+            <param name="header"></param>
         </member>
-        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnError(System.Int32,System.String)">
+        <member name="M:WebSocketUploadFile.IUploadFileHandler.OnError(WebSocketUploadFile.UploadHeader)">
             <summary>
             传输错误
             </summary>
-            <param name="tranid"></param>
-            <param name="filename"></param>
+            <param name="header"></param>
+        </member>
+        <member name="P:WebSocketUploadFile.UploadHeader.tranid">
+            <summary>
+            事务id，断点续传的文件，事务id应该相同
+            </summary>
+        </member>
+        <member name="P:WebSocketUploadFile.UploadHeader.length">
+            <summary>
+            文件的大小
+            </summary>
         </member>
     </members>
 </doc>

@@ -17,7 +17,9 @@
 </body>
 <script lang="ja">
     var info = document.body.querySelector("#info");
+
     var obj = new exports.WebSocketUploadFile(document.body.querySelector("#file"));
+    obj.state = "test info";
     obj.onProgress = function (sender, total, sended) {
         info.innerHTML = sended + "," + total;
     }

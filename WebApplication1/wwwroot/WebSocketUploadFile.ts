@@ -10,6 +10,8 @@ export class WebSocketUploadFile {
     /**服务器已经接收的数量*/
     serverReceived = 0;
     isUploading = false;
+    /**上传到服务器的附加信息*/
+    state: string;
 
     onProgress: (sender: WebSocketUploadFile, totalBytes, serverReceived) => void;
     onCompleted: (sender: WebSocketUploadFile) => void;
@@ -85,7 +87,8 @@ export class WebSocketUploadFile {
                 filename : this.file.name,
                 length: this.file.size,
                 position: this.serverReceived,
-                tranid: this.tranId
+                tranid: this.tranId,
+                state: this.state
             }));
         };
         var callBack = (ev: MessageEvent) => {
