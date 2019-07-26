@@ -11,7 +11,7 @@ export class WebSocketUploadFile {
     serverReceived = 0;
     isUploading = false;
 
-    onProgress: (sender: WebSocketUploadFile, totalBytes, sended) => void;
+    onProgress: (sender: WebSocketUploadFile, totalBytes, serverReceived) => void;
     onCompleted: (sender: WebSocketUploadFile) => void;
     onError: (sender: WebSocketUploadFile, err) => void;
 
