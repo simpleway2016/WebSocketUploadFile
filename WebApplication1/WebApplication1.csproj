@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\index.d.ts" />
     <Content Remove="wwwroot\WebSocketUploadFile.ts" />
   </ItemGroup>
 
@@ -19,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <TypeScriptCompile Include="wwwroot\index.d.ts" />
     <TypeScriptCompile Include="wwwroot\WebSocketUploadFile.ts" />
   </ItemGroup>
 

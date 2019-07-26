@@ -102,3 +102,28 @@ namespace WebApplication1
     }
 </script>
 ```
+
+***TypeScript in webpack***
+tsconfig.json
+```
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "module": "es2015",
+    "moduleResolution": "node",
+    "target": "es5",
+    "allowJs": true,
+    "types": [
+      "./node_modules/jack-websocket-uploadfile",
+    ]
+  }
+}
+
+```
+**import**
+```
+import WebSocketUploadFile from "jack-websocket-uploadfile"
+
+```
