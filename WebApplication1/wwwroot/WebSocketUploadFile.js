@@ -77,6 +77,12 @@ var WebSocketUploadFile = /** @class */ (function () {
             }));
         };
         var callBack = function (ev) {
+            if (ev.data.indexOf("{") == 0) {
+                var err;
+                eval("err=" + ev.data);
+                _this.onerror(new Error(err.msg));
+                return;
+            }
             _this.serverReceived = parseInt(ev.data);
             if (_this.serverReceived == -1) {
                 var web = _this.webSocket;

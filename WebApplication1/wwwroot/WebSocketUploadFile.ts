@@ -92,6 +92,12 @@ export class WebSocketUploadFile {
             }));
         };
         var callBack = (ev: MessageEvent) => {
+            if (ev.data.indexOf("{") == 0) {
+                var err;
+                eval("err=" + ev.data);
+                this.onerror(new Error(err.msg));
+                return;
+            }
             this.serverReceived = parseInt(ev.data);
 
             if (this.serverReceived == -1) {

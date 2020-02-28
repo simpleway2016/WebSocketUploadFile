@@ -68,8 +68,10 @@ namespace WebSocketUploadFile
                                                       
                         }
                     }
-                    catch
+                    catch(Exception ex)
                     {
+                        var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new { msg = ex.Message })));
+                        _socket.SendAsync(outputTranIdBuffer, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
                         break;
                     }
                 }
