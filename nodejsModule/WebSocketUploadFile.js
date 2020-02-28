@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * 如果要实现断点续传，并且WebSocketUploadFile是一个新的实例化对象，可以通过设置tranId和serverReceived属性来实现
- * 如果是同一个WebSocketUploadFile对象，在传输过程中发生错误中端，只需要再次调用该对象的upload方法即可
+ * 如果是同一个WebSocketUploadFile对象，在传输过程中发生错误中断，只需要再次调用该对象的upload方法即可
  * */
 var WebSocketUploadFile = /** @class */ (function () {
     /**
@@ -72,7 +72,8 @@ var WebSocketUploadFile = /** @class */ (function () {
                 filename: _this.file.name,
                 length: _this.file.size,
                 position: _this.serverReceived,
-                tranid: _this.tranId
+                tranid: _this.tranId,
+                state: _this.state
             }));
         };
         var callBack = function (ev) {
