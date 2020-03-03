@@ -6,7 +6,7 @@
     <RepositoryUrl></RepositoryUrl>
     <PackageProjectUrl>https://github.com/simpleway2016/WebSocketUploadFile</PackageProjectUrl>
     <Description>支持通过websocket上传大文件，支持断点续传</Description>
-    <Version>1.0.0.3</Version>
+    <Version>1.0.0.4</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

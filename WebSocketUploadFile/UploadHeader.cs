@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,6 +7,12 @@ namespace WebSocketUploadFile
 {
     public class UploadHeader
     {
+
+        public HttpContext HttpContext
+        {
+            get;
+            internal set;
+        }
 
         private int? _tranid;
         /// <summary>

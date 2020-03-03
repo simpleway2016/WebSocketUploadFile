@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Net.WebSockets;
 using System.Text;
@@ -31,14 +32,14 @@ namespace WebSocketUploadFile
                     var t = context.WebSockets.AcceptWebSocketAsync();
                     t.Wait();
                     WebSocket webSocket = t.Result;
-                    return ProcessWebSocketRequest(webSocket);
+                    return ProcessWebSocketRequest(webSocket , context);
                 }
 
                 return next();
             });
         }
 
-        static async Task ProcessWebSocketRequest(WebSocket socket)
+        static async Task ProcessWebSocketRequest(WebSocket socket,HttpContext context)
         {
             var bs = new byte[2048];
             while (true)
@@ -58,6 +59,7 @@ namespace WebSocketUploadFile
                             {
                                 header.tranid = System.Threading.Interlocked.Add(ref transcationId, 1);
                             }
+                            header.HttpContext = context;
 
                             var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(header.tranid.ToString()));
                             socket.SendAsync(outputTranIdBuffer, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
