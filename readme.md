@@ -44,7 +44,7 @@ namespace WebApplication1
     {
         public void OnUploadCompleted(UploadHeader header)
         {
-            
+            //这里面需要把header.FilePath指向的文件拷走，因为会自动删除此文件
         }
     }
 
