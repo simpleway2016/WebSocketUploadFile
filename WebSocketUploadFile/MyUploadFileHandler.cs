@@ -75,6 +75,13 @@ namespace WebSocketUploadFile
 
         public void OnBeginUploadFile(WebSocketUploadFile.UploadHeader header, bool isContinue)
         {
+
+            var handler = (IUploadCompleted)_app.ApplicationServices.GetService(typeof(IUploadCompleted));
+            if (handler != null)
+            {
+                handler.OnFileComing(header);
+            }
+
             if (_dict.ContainsKey(header.TranId.Value) == false)
             {
                 if(header.Position > 0)

@@ -41,6 +41,11 @@ namespace WebApplication1
 
     class TestUploadComleted : IUploadCompleted
     {
+        public void OnFileComing(UploadHeader header)
+        {
+            
+        }
+
         public void OnUploadCompleted(UploadHeader header)
         {
             
