@@ -29,7 +29,10 @@ namespace WebSocketUploadFile
             _socket = socket;
             _handler = (IUploadFileHandler)app.ApplicationServices.GetService(typeof(IUploadFileHandler));
             if (_handler == null)
+            {
                 _handler = MyUploadFileHandler;
+                MyUploadFileHandler.start();
+            }
         }
 
         public async Task Process()
@@ -77,7 +80,7 @@ namespace WebSocketUploadFile
                     }
                     catch(Exception ex)
                     {
-                        var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new { code = 501, message = ex.Message })));
+                        var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new { code = (int)ErrorCode.ServerError, message = ex.Message })));
                         _socket.SendAsync(outputTranIdBuffer, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
                         break;
                     }

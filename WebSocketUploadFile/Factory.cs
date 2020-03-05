@@ -64,7 +64,7 @@ namespace WebSocketUploadFile
                             var header = Newtonsoft.Json.JsonConvert.DeserializeObject<UploadHeader>(jsonString);
                             if(header.Length > Option.MaxFileLength)
                             {
-                                var errBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new { code=601, message = "文件大小超过上限" })));
+                                var errBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new { code=(int)ErrorCode.TooBig, message = "文件大小超过上限" })));
                                 await socket.SendAsync(errBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
                                 break;
                             }
@@ -72,6 +72,7 @@ namespace WebSocketUploadFile
                             {
                                 header.TranId = System.Threading.Interlocked.Add(ref transcationId, 1);
                             }
+                            
                             header.HttpContext = context;
 
                             var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(header.TranId.ToString()));

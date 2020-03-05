@@ -26,7 +26,9 @@ namespace WebApplication1
                 app.UseDeveloperExceptionPage();
             }
 
-            WebSocketUploadFile.Factory.Enable(app, env);
+            WebSocketUploadFile.Factory.Enable(app, env,new Option { 
+            MaxFileLength = 1024*1024*1024*10L
+            });
             app.UseStaticFiles();
 
             app.Run(async (context) =>
