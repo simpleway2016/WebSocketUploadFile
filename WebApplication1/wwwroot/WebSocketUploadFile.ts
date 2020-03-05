@@ -12,6 +12,8 @@ export class WebSocketUploadFile {
     isUploading = false;
     /**上传到服务器的附加信息*/
     state: string;
+    /**服务器校验信息*/
+    auth: string;
 
     onProgress: (sender: WebSocketUploadFile, totalBytes, serverReceived) => void;
     onCompleted: (sender: WebSocketUploadFile) => void;
@@ -60,21 +62,12 @@ export class WebSocketUploadFile {
         console.log(`WebSocket Address:${this.serverUrl}`);
     }
 
-    private onSocketError() {
-        if (!this.webSocket)
-            return;
-        this.webSocket = null;
-        if (this.reader) {
-            var reader = this.reader;
-            this.reader = null;
-            this.reader.abort();
-        }
-        this.onerror(new Error("websocket error"));
-    }
+   
 
     private initWebSocket() {
         this.webSocket = new WebSocket(this.serverUrl);
         var originalType = this.webSocket.binaryType;
+        this.reader = undefined;
 
         this.webSocket.onerror = (ev) => {
             this.onSocketError();          
@@ -88,63 +81,74 @@ export class WebSocketUploadFile {
                 length: this.file.size,
                 position: this.serverReceived,
                 tranid: this.tranId,
-                state: this.state
+                state: this.state,
+                auth: this.auth
             }));
         };
-        var callBack = (ev: MessageEvent) => {
+
+
+        this.webSocket.onmessage = (ev) => {
             if (ev.data.indexOf("{") == 0) {
                 var err;
                 eval("err=" + ev.data);
-                this.onerror(new Error(err.msg));
+                this.onerror(err);
                 return;
             }
-            this.serverReceived = parseInt(ev.data);
 
-            if (this.serverReceived == -1) {
-                var web = this.webSocket;
-                this.webSocket = null;
-                web.close();
-                this.isUploading = false;
+            if (!this.reader) {
+                this.onFirstMessage(ev);
             }
+            else {
+               
+                this.serverReceived = parseInt(ev.data);
 
-            if (this.onProgress && this.serverReceived >= 0) {
-                this.onProgress(this, this.file.size, this.serverReceived);
-            }
-            if (this.serverReceived == -1) {
-                this.readedPosition = 0;
-                this.serverReceived = 0;
-                this.tranId = "";
-                if (this.onCompleted != null) {
-                    this.onCompleted(this);
+                if (this.serverReceived == -1) {
+                    var web = this.webSocket;                    
+                    this.webSocket.onmessage = null;
+                    this.webSocket.onerror = null;
+                    this.webSocket.onclose = null;
+                    this.webSocket = null;
+                    web.close();
+                    this.isUploading = false;
+                }
+
+                if (this.onProgress && this.serverReceived >= 0) {
+                    this.onProgress(this, this.file.size, this.serverReceived);
+                }
+                if (this.serverReceived == -1) {
+                    this.readedPosition = 0;
+                    this.serverReceived = 0;
+                    this.tranId = "";
+                    if (this.onCompleted != null) {
+                        this.onCompleted(this);
+                    }
                 }
             }
         };
+    }
 
-        this.webSocket.onmessage = (ev) => {
-            this.tranId = ev.data;
-            this.webSocket.onmessage = callBack;
-            this.webSocket.binaryType = "arraybuffer";
+    private onFirstMessage(ev: MessageEvent) {
+        this.tranId = ev.data;
+        this.webSocket.binaryType = "arraybuffer";
 
-            this.reader = new FileReader();
-            this.reader.onload = (ev) => {
-                if (!this.webSocket)
-                    return;
+        this.reader = new FileReader();
+        this.reader.onload = (ev) => {
+            if (!this.webSocket)
+                return;
 
-                var filedata: ArrayBuffer = <ArrayBuffer>this.reader.result;
-                this.webSocket.send(filedata);
+            var filedata: ArrayBuffer = <ArrayBuffer>this.reader.result;
+            this.webSocket.send(filedata);
 
-                this.readedPosition += filedata.byteLength;
-                if (this.readedPosition == this.file.size) {
-                    this.reader = null;
-                    return;
-                }
-                this.sendBlock(this.readedPosition, 20480);
-            };
-            this.reader.onerror = (ev) => {
-                this.onerror(new Error("read file error"));
-            };
-            this.sendBlock(this.readedPosition , 20480);           
+            this.readedPosition += filedata.byteLength;
+            if (this.readedPosition == this.file.size) {
+                return;
+            }
+            this.sendBlock(this.readedPosition, 20480);
         };
+        this.reader.onerror = (ev) => {
+            this.onerror(new Error("read file error"));
+        };
+        this.sendBlock(this.readedPosition, 20480);
     }
 
     private sendBlock(start, len) {
@@ -157,11 +161,29 @@ export class WebSocketUploadFile {
         }
     }
 
+    private onSocketError() {
+        if (!this.webSocket)
+            return;       
+        this.onerror(new Error("websocket error"));
+    }
+
     private onerror(err) {
+        if (!this.webSocket)
+            return;
+
         var web = this.webSocket;
+        this.webSocket.onmessage = null;
+        this.webSocket.onerror = null;
+        this.webSocket.onclose = null;
         this.webSocket = null;
         if (web)
             web.close();
+
+        if (this.reader) {
+            var reader = this.reader;
+            this.reader = null;
+            reader.abort();
+        }
 
         this.isUploading = false;
         if (this.onError) {

@@ -16,20 +16,27 @@ namespace WebSocketUploadFile
         WebSocket _socket;
         UploadHeader _header;
         IUploadFileHandler _handler;
+        static MyUploadFileHandler MyUploadFileHandler;
         public UploadHandler(IApplicationBuilder app, IHostingEnvironment env,UploadHeader header, WebSocket socket)
         {
+            if(MyUploadFileHandler == null)
+            {
+                MyUploadFileHandler = new MyUploadFileHandler(app);
+            }
             _app = app;
             _env = env;
             _header = header;
             _socket = socket;
             _handler = (IUploadFileHandler)app.ApplicationServices.GetService(typeof(IUploadFileHandler));
+            if (_handler == null)
+                _handler = MyUploadFileHandler;
         }
 
         public async Task Process()
         {
             if(_handler != null)
             {
-                _handler.OnBeginUploadFile(_header , _header.position == 0 ? false : true);
+                _handler.OnBeginUploadFile(_header , _header.Position == 0 ? false : true);
             }
             var lastReportTime = DateTime.Now.AddSeconds(-100);
             var bs = new byte[204800];
@@ -45,12 +52,12 @@ namespace WebSocketUploadFile
 
                         if (result.MessageType == WebSocketMessageType.Binary)
                         {
-                            this.onReceived(this._header.tranid.GetValueOrDefault(),_header.filename, buffer.Array, result.Count , _header.position);
-                            _header.position += result.Count;
+                            this.onReceived(this._header.TranId.GetValueOrDefault(),_header.FileName, buffer.Array, result.Count , _header.Position);
+                            _header.Position += result.Count;
 
-                            if (_header.position == _header.length)
+                            if (_header.Position == _header.Length)
                             {
-                                this.onFinish(this._header.tranid.GetValueOrDefault(), _header.filename);
+                                this.onFinish(this._header.TranId.GetValueOrDefault(), _header.FileName);
                                 finished = true;
 
                                 var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes("-1"));
@@ -61,7 +68,7 @@ namespace WebSocketUploadFile
                                 if ((DateTime.Now - lastReportTime).TotalSeconds >= 1)
                                 {
                                     lastReportTime = DateTime.Now;
-                                    var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(_header.position.ToString()));
+                                    var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(_header.Position.ToString()));
                                     _socket.SendAsync(outputTranIdBuffer, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
                                 }
                             }
@@ -70,7 +77,7 @@ namespace WebSocketUploadFile
                     }
                     catch(Exception ex)
                     {
-                        var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new { msg = ex.Message })));
+                        var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new { code = 501, message = ex.Message })));
                         _socket.SendAsync(outputTranIdBuffer, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
                         break;
                     }
@@ -90,7 +97,7 @@ namespace WebSocketUploadFile
             }
         }
 
-        void onReceived(int tranid,string filename, byte[] data, int length ,int filePosition)
+        void onReceived(int tranid,string filename, byte[] data, int length ,long filePosition)
         {
             if(_handler != null)
             {

@@ -46,21 +46,11 @@ var WebSocketUploadFile = /** @class */ (function () {
             this.serverUrl += "?WebSocketUploadFile=1";
         console.log("WebSocket Address:" + this.serverUrl);
     }
-    WebSocketUploadFile.prototype.onSocketError = function () {
-        if (!this.webSocket)
-            return;
-        this.webSocket = null;
-        if (this.reader) {
-            var reader = this.reader;
-            this.reader = null;
-            this.reader.abort();
-        }
-        this.onerror(new Error("websocket error"));
-    };
     WebSocketUploadFile.prototype.initWebSocket = function () {
         var _this = this;
         this.webSocket = new WebSocket(this.serverUrl);
         var originalType = this.webSocket.binaryType;
+        this.reader = undefined;
         this.webSocket.onerror = function (ev) {
             _this.onSocketError();
         };
@@ -73,57 +63,65 @@ var WebSocketUploadFile = /** @class */ (function () {
                 length: _this.file.size,
                 position: _this.serverReceived,
                 tranid: _this.tranId,
-                state: _this.state
+                state: _this.state,
+                auth: _this.auth
             }));
         };
-        var callBack = function (ev) {
+        this.webSocket.onmessage = function (ev) {
             if (ev.data.indexOf("{") == 0) {
                 var err;
                 eval("err=" + ev.data);
-                _this.onerror(new Error(err.msg));
+                _this.onerror(err);
                 return;
             }
-            _this.serverReceived = parseInt(ev.data);
-            if (_this.serverReceived == -1) {
-                var web = _this.webSocket;
-                _this.webSocket = null;
-                web.close();
-                _this.isUploading = false;
+            if (!_this.reader) {
+                _this.onFirstMessage(ev);
             }
-            if (_this.onProgress && _this.serverReceived >= 0) {
-                _this.onProgress(_this, _this.file.size, _this.serverReceived);
-            }
-            if (_this.serverReceived == -1) {
-                _this.readedPosition = 0;
-                _this.serverReceived = 0;
-                _this.tranId = "";
-                if (_this.onCompleted != null) {
-                    _this.onCompleted(_this);
+            else {
+                _this.serverReceived = parseInt(ev.data);
+                if (_this.serverReceived == -1) {
+                    var web = _this.webSocket;
+                    _this.webSocket.onmessage = null;
+                    _this.webSocket.onerror = null;
+                    _this.webSocket.onclose = null;
+                    _this.webSocket = null;
+                    web.close();
+                    _this.isUploading = false;
+                }
+                if (_this.onProgress && _this.serverReceived >= 0) {
+                    _this.onProgress(_this, _this.file.size, _this.serverReceived);
+                }
+                if (_this.serverReceived == -1) {
+                    _this.readedPosition = 0;
+                    _this.serverReceived = 0;
+                    _this.tranId = "";
+                    if (_this.onCompleted != null) {
+                        _this.onCompleted(_this);
+                    }
                 }
             }
         };
-        this.webSocket.onmessage = function (ev) {
-            _this.tranId = ev.data;
-            _this.webSocket.onmessage = callBack;
-            _this.webSocket.binaryType = "arraybuffer";
-            _this.reader = new FileReader();
-            _this.reader.onload = function (ev) {
-                if (!_this.webSocket)
-                    return;
-                var filedata = _this.reader.result;
-                _this.webSocket.send(filedata);
-                _this.readedPosition += filedata.byteLength;
-                if (_this.readedPosition == _this.file.size) {
-                    _this.reader = null;
-                    return;
-                }
-                _this.sendBlock(_this.readedPosition, 20480);
-            };
-            _this.reader.onerror = function (ev) {
-                _this.onerror(new Error("read file error"));
-            };
+    };
+    WebSocketUploadFile.prototype.onFirstMessage = function (ev) {
+        var _this = this;
+        this.tranId = ev.data;
+        this.webSocket.binaryType = "arraybuffer";
+        this.reader = new FileReader();
+        this.reader.onload = function (ev) {
+            if (!_this.webSocket)
+                return;
+            var filedata = _this.reader.result;
+            _this.webSocket.send(filedata);
+            _this.readedPosition += filedata.byteLength;
+            if (_this.readedPosition == _this.file.size) {
+                return;
+            }
             _this.sendBlock(_this.readedPosition, 20480);
         };
+        this.reader.onerror = function (ev) {
+            _this.onerror(new Error("read file error"));
+        };
+        this.sendBlock(this.readedPosition, 20480);
     };
     WebSocketUploadFile.prototype.sendBlock = function (start, len) {
         try {
@@ -134,11 +132,26 @@ var WebSocketUploadFile = /** @class */ (function () {
             this.onerror(e);
         }
     };
+    WebSocketUploadFile.prototype.onSocketError = function () {
+        if (!this.webSocket)
+            return;
+        this.onerror(new Error("websocket error"));
+    };
     WebSocketUploadFile.prototype.onerror = function (err) {
+        if (!this.webSocket)
+            return;
         var web = this.webSocket;
+        this.webSocket.onmessage = null;
+        this.webSocket.onerror = null;
+        this.webSocket.onclose = null;
         this.webSocket = null;
         if (web)
             web.close();
+        if (this.reader) {
+            var reader = this.reader;
+            this.reader = null;
+            reader.abort();
+        }
         this.isUploading = false;
         if (this.onError) {
             this.onError(this, err);

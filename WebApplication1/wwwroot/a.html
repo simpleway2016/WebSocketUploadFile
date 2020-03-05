@@ -20,6 +20,7 @@
 
     var obj = new exports.WebSocketUploadFile(document.body.querySelector("#file"));
     obj.state = "test info";
+    obj.auth = "my auth";
     obj.onProgress = function (sender, total, sended) {
         info.innerHTML = sended + "," + total;
     }
@@ -27,7 +28,7 @@
         info.innerHTML = "ok";
     }
     obj.onError = function (sender, err) {
-        info.innerHTML = err.message;
+        info.innerHTML = JSON.stringify(err);
     }
 </script>
 </html>

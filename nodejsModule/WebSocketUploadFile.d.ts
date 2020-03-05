@@ -12,6 +12,8 @@ export declare class WebSocketUploadFile {
     isUploading: boolean;
     /**上传到服务器的附加信息*/
     state: string;
+    /**服务器校验信息*/
+    auth: string;
     onProgress: (sender: WebSocketUploadFile, totalBytes: any, serverReceived: any) => void;
     onCompleted: (sender: WebSocketUploadFile) => void;
     onError: (sender: WebSocketUploadFile, err: any) => void;
@@ -26,9 +28,10 @@ export declare class WebSocketUploadFile {
      * @param serverUrl 服务器地址，如：http://www.test.com，如果为空，则以location.href为准
      */
     constructor(fileEle: HTMLInputElement, serverUrl?: string);
-    private onSocketError;
     private initWebSocket;
+    private onFirstMessage;
     private sendBlock;
+    private onSocketError;
     private onerror;
     upload(): void;
 }

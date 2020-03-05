@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-
+using WebSocketUploadFile;
 namespace WebApplication1
 {
     public class Startup
@@ -15,7 +15,7 @@ namespace WebApplication1
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Add(new ServiceDescriptor(typeof(WebSocketUploadFile.IUploadFileHandler) , new TestUploadHandler()));
+            services.AddSingleton<IUploadCompleted>(new TestUploadComleted());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,15 +36,23 @@ namespace WebApplication1
         }
     }
 
+    class TestUploadComleted : IUploadCompleted
+    {
+        public void OnUploadCompleted(UploadHeader header)
+        {
+            
+        }
+    }
+
     class TestUploadHandler : WebSocketUploadFile.IUploadFileHandler
     {
         Dictionary<int, System.IO.FileStream> _dict = new Dictionary<int, System.IO.FileStream>();
 
         public void OnBeginUploadFile(WebSocketUploadFile.UploadHeader header, bool isContinue)
         {
-           if(_dict.ContainsKey(header.tranid.Value) == false)
+           if(_dict.ContainsKey(header.TranId.Value) == false)
             {
-                _dict[header.tranid.Value] = System.IO.File.Create($"{AppDomain.CurrentDomain.BaseDirectory}{header.filename}");
+                _dict[header.TranId.Value] = System.IO.File.Create($"{AppDomain.CurrentDomain.BaseDirectory}{header.FileName}");
             }
         }
 
@@ -53,18 +61,18 @@ namespace WebApplication1
 
         }
 
-        public void OnReceivedFileContent(WebSocketUploadFile.UploadHeader header, byte[] data, int length, int filePosition)
+        public void OnReceivedFileContent(WebSocketUploadFile.UploadHeader header, byte[] data, int length, long filePosition)
         {
-            var stream = _dict[header.tranid.Value];
+            var stream = _dict[header.TranId.Value];
             stream.Seek(filePosition, System.IO.SeekOrigin.Begin);
             stream.Write(data, 0, length);
         }
 
         public void OnUploadCompleted(WebSocketUploadFile.UploadHeader header)
         {
-            var stream = _dict[header.tranid.Value];
+            var stream = _dict[header.TranId.Value];
             stream.Close();
-            _dict.Remove(header.tranid.Value);
+            _dict.Remove(header.TranId.Value);
         }
     }
 }

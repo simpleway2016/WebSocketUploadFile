@@ -14,16 +14,23 @@ namespace WebSocketUploadFile
         static IApplicationBuilder Application;
         static IHostingEnvironment Environment;
         static int transcationId = 0;
+        static Option Option;
         /// <summary>
         /// 启用WebSocketUploadFile
         /// </summary>
         /// <param name="app"></param>
         /// <param name="env"></param>
-        public static void Enable(IApplicationBuilder app, IHostingEnvironment env)
+        /// <param name="option"></param>
+        public static void Enable(IApplicationBuilder app, IHostingEnvironment env,Option option = null)
         {
             Application = app;
             Environment = env;
             app.UseWebSockets();
+
+            if (option != null)
+                Option = option;
+            else
+                Option = new Option();
 
             app.Use((context,next)=> {
                 if (context.WebSockets.IsWebSocketRequest && context.Request.Query.ContainsKey("WebSocketUploadFile"))
@@ -55,13 +62,19 @@ namespace WebSocketUploadFile
                         {
                             string jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
                             var header = Newtonsoft.Json.JsonConvert.DeserializeObject<UploadHeader>(jsonString);
-                            if (header.tranid == null)
+                            if(header.Length > Option.MaxFileLength)
                             {
-                                header.tranid = System.Threading.Interlocked.Add(ref transcationId, 1);
+                                var errBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new { code=601, message = "文件大小超过上限" })));
+                                await socket.SendAsync(errBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                                break;
+                            }
+                            if (header.TranId == null)
+                            {
+                                header.TranId = System.Threading.Interlocked.Add(ref transcationId, 1);
                             }
                             header.HttpContext = context;
 
-                            var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(header.tranid.ToString()));
+                            var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(header.TranId.ToString()));
                             socket.SendAsync(outputTranIdBuffer, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
 
                             await new UploadHandler(Application, Environment, header, socket).Process();
@@ -69,7 +82,7 @@ namespace WebSocketUploadFile
                             
                         }
                     }
-                    catch
+                    catch(Exception ex)
                     {
                     }
                 }
