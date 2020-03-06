@@ -1,6 +1,6 @@
 {
   "name": "jack-websocket-uploadfile",
-  "version": "1.0.11",
+  "version": "1.0.15",
   "description": ".net core断点续传组件，服务器端参考：https://github.com/simpleway2016/WebSocketUploadFile",
   "main": "index.js",
   "scripts": {
