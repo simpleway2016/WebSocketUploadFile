@@ -1,4 +1,4 @@
-���ļ��ϴ������м����֧�ֶϵ�����
+大文件上传处理中间件，支持断点续传
 
 ``` 
 using System;
@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using WebSocketUploadFile;
 
 namespace WebApplication1
 {
@@ -18,7 +19,7 @@ namespace WebApplication1
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Add(new ServiceDescriptor(typeof(WebSocketUploadFile.IUploadFileHandler) , new TestUploadHandler()));
+            services.AddSingleton<IUploadCompleted>(new TestUploadComleted());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,42 +40,21 @@ namespace WebApplication1
         }
     }
 
-    class TestUploadHandler : WebSocketUploadFile.IUploadFileHandler
+    class TestUploadComleted : IUploadCompleted
     {
-        Dictionary<int, System.IO.FileStream> _dict = new Dictionary<int, System.IO.FileStream>();
-
-        public void OnBeginUploadFile(int tranid, string filename, int length, bool isContinue)
+        public void OnFileComing(UploadHeader header)
         {
-           if(_dict.ContainsKey(tranid) == false)
-            {
-                _dict[tranid] = System.IO.File.Create($"{AppDomain.CurrentDomain.BaseDirectory}{filename}");
-            }
+            //如果要阻止上传，这里可以抛出异常   
         }
-
-        public void OnError(int tranid, string filename)
+        public void OnUploadCompleted(UploadHeader header)
         {
-
-        }
-
-        public void OnReceivedFileContent(int tranid, string filename, byte[] data, int length, int filePosition)
-        {
-            var stream = _dict[tranid];
-            stream.Seek(filePosition, System.IO.SeekOrigin.Begin);
-            stream.Write(data, 0, length);
-        }
-
-        public void OnUploadCompleted(int tranid, string filename)
-        {
-            var stream = _dict[tranid];
-            stream.Close();
-            _dict.Remove(tranid);
+            //这里面需要把header.FilePath指向的文件拷走，因为会自动删除此文件
         }
     }
-}
 
 ```
 
-**Htmlҳ���ʹ��**
+**Html页面的使用**
 
 ```
 <body>
@@ -87,7 +67,7 @@ namespace WebApplication1
 <script lang="ja">
     var info = document.body.querySelector("#info");
 
-    //����nodejsģ��
+    //引用nodejs模块
     var WebSocketUploadFile = require("jack-websocket-uploadfile");
 
     var obj = new WebSocketUploadFile(document.body.querySelector("#file"));
@@ -98,7 +78,8 @@ namespace WebApplication1
         info.innerHTML = "ok";
     }
     obj.onError = function (sender, err) {
-        info.innerHTML = err.message;
+        info.innerHTML = JSON.stringify( err );
+        //如果断点续传，这里直接调用obj.upload()即可
     }
 </script>
 ```

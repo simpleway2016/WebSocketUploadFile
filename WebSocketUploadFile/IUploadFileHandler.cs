@@ -21,9 +21,9 @@ namespace WebSocketUploadFile
         /// </summary>
         /// <param name="header"></param>
         /// <param name="data"></param>
-        /// <param name="length">文件总长度</param>
+        /// <param name="length">data的长度</param>
         /// <param name="filePosition">接收到的数据所在的position</param>
-        void OnReceivedFileContent(UploadHeader header, byte[] data, int length, int filePosition);
+        void OnReceivedFileContent(UploadHeader header, byte[] data, int length, long filePosition);
 
         /// <summary>
         /// 文件上传完毕

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,11 +8,17 @@ namespace WebSocketUploadFile
     public class UploadHeader
     {
 
+        public HttpContext HttpContext
+        {
+            get;
+            internal set;
+        }
+
         private int? _tranid;
         /// <summary>
         /// 事务id，断点续传的文件，事务id应该相同
         /// </summary>
-        public int? tranid
+        public int? TranId
         {
             get => _tranid;
             set
@@ -24,8 +31,21 @@ namespace WebSocketUploadFile
         }
 
 
+        private string _auth;
+        public string Auth
+        {
+            get => _auth;
+            set
+            {
+                if (_auth != value)
+                {
+                    _auth = value;
+                }
+            }
+        }
+
         private string _state;
-        public string state
+        public string State
         {
             get => _state;
             set
@@ -37,8 +57,22 @@ namespace WebSocketUploadFile
             }
         }
 
+
+        private string _FilePath;
+        public string FilePath
+        {
+            get => _FilePath;
+            set
+            {
+                if (_FilePath != value)
+                {
+                    _FilePath = value;
+                }
+            }
+        }
+
         private string _filename;
-        public string filename
+        public string FileName
         {
             get => _filename;
             set
@@ -51,11 +85,11 @@ namespace WebSocketUploadFile
         }
 
 
-        private int _length;
+        private long _length;
         /// <summary>
         /// 文件的大小
         /// </summary>
-        public int length
+        public long Length
         {
             get => _length;
             set
@@ -68,8 +102,8 @@ namespace WebSocketUploadFile
         }
 
 
-        private int _position;
-        public int position
+        private long _position;
+        public long Position
         {
             get => _position;
             set

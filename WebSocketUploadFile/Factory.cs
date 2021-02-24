@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Net.WebSockets;
 using System.Text;
@@ -11,15 +12,25 @@ namespace WebSocketUploadFile
     public static class Factory
     {
         static IApplicationBuilder Application;
+        static IHostingEnvironment Environment;
         static int transcationId = 0;
+        static Option Option;
         /// <summary>
         /// 启用WebSocketUploadFile
         /// </summary>
         /// <param name="app"></param>
-        public static void Enable(IApplicationBuilder app)
+        /// <param name="env"></param>
+        /// <param name="option"></param>
+        public static void Enable(IApplicationBuilder app, IHostingEnvironment env,Option option = null)
         {
             Application = app;
+            Environment = env;
             app.UseWebSockets();
+
+            if (option != null)
+                Option = option;
+            else
+                Option = new Option();
 
             app.Use((context,next)=> {
                 if (context.WebSockets.IsWebSocketRequest && context.Request.Query.ContainsKey("WebSocketUploadFile"))
@@ -28,14 +39,14 @@ namespace WebSocketUploadFile
                     var t = context.WebSockets.AcceptWebSocketAsync();
                     t.Wait();
                     WebSocket webSocket = t.Result;
-                    return ProcessWebSocketRequest(webSocket);
+                    return ProcessWebSocketRequest(webSocket , context);
                 }
 
                 return next();
             });
         }
 
-        static async Task ProcessWebSocketRequest(WebSocket socket)
+        static async Task ProcessWebSocketRequest(WebSocket socket,HttpContext context)
         {
             var bs = new byte[2048];
             while (true)
@@ -51,20 +62,28 @@ namespace WebSocketUploadFile
                         {
                             string jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
                             var header = Newtonsoft.Json.JsonConvert.DeserializeObject<UploadHeader>(jsonString);
-                            if (header.tranid == null)
+                            if(header.Length > Option.MaxFileLength)
                             {
-                                header.tranid = System.Threading.Interlocked.Add(ref transcationId, 1);
+                                var errBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new { code=(int)ErrorCode.TooBig, message = "文件大小超过上限" })));
+                                await socket.SendAsync(errBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                                break;
                             }
+                            if (header.TranId == null)
+                            {
+                                header.TranId = System.Threading.Interlocked.Add(ref transcationId, 1);
+                            }
+                            
+                            header.HttpContext = context;
 
-                            var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(header.tranid.ToString()));
+                            var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(header.TranId.ToString()));
                             socket.SendAsync(outputTranIdBuffer, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
 
-                            await new UploadHandler(Application, header, socket).Process();
+                            await new UploadHandler(Application, Environment, header, socket).Process();
                             return;
                             
                         }
                     }
-                    catch
+                    catch(Exception ex)
                     {
                     }
                 }
