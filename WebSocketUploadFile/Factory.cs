@@ -11,17 +11,14 @@ namespace WebSocketUploadFile
     public static class Factory
     {
         static IApplicationBuilder Application;
-        static IHostingEnvironment Environment;
         static int transcationId = 0;
         /// <summary>
         /// 启用WebSocketUploadFile
         /// </summary>
         /// <param name="app"></param>
-        /// <param name="env"></param>
-        public static void Enable(IApplicationBuilder app, IHostingEnvironment env)
+        public static void Enable(IApplicationBuilder app)
         {
             Application = app;
-            Environment = env;
             app.UseWebSockets();
 
             app.Use((context,next)=> {
@@ -62,7 +59,7 @@ namespace WebSocketUploadFile
                             var outputTranIdBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(header.tranid.ToString()));
                             socket.SendAsync(outputTranIdBuffer, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
 
-                            await new UploadHandler(Application, Environment, header, socket).Process();
+                            await new UploadHandler(Application, header, socket).Process();
                             return;
                             
                         }
