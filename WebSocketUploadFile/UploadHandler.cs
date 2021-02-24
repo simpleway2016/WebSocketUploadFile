@@ -12,19 +12,17 @@ namespace WebSocketUploadFile
     class UploadHandler
     {
         IApplicationBuilder _app;
-        IHostingEnvironment _env;
         WebSocket _socket;
         UploadHeader _header;
         IUploadFileHandler _handler;
         static MyUploadFileHandler MyUploadFileHandler;
-        public UploadHandler(IApplicationBuilder app, IHostingEnvironment env,UploadHeader header, WebSocket socket)
+        public UploadHandler(IApplicationBuilder app, UploadHeader header, WebSocket socket)
         {
             if(MyUploadFileHandler == null)
             {
                 MyUploadFileHandler = new MyUploadFileHandler(app);
             }
             _app = app;
-            _env = env;
             _header = header;
             _socket = socket;
             _handler = (IUploadFileHandler)app.ApplicationServices.GetService(typeof(IUploadFileHandler));
