@@ -23,7 +23,6 @@ export declare class WebSocketUploadFile {
     /**
      *
      * @param fileEle
-     * @param tranId
      * @param serverUrl 服务器地址，如：http://www.test.com，如果为空，则以location.href为准
      */
     constructor(fileEle: any, serverUrl?: string);
